@@ -24,10 +24,28 @@ def collect_data_from_API():
                     "id": str(uuid.uuid4()),
                     "job_title": title,
                     "job_link":  'https://www.apanovabucuresti.ro/despre-noi/' + link,
-                    "company": "Apanova",
+                    "company": "ApanovaBucuresti",
                     "country": "Romania",
                     "city": 'Bucuresti'
                 })
     return list_with_data
 #
 print(collect_data_from_API())
+#
+# update data on peviitor!
+@update_peviitor_api
+def scrape_and_update_peviitor(company_name, data_list):
+    """
+    Update data on peviitor API!
+    """
+
+    return data_list
+
+
+company_name = 'ApanovaBucuresti'  # add test comment
+data_list = collect_data_from_API()
+scrape_and_update_peviitor(company_name, data_list)
+
+print(update_logo('ApanovaBucuresti',
+                  'https://www.apanovabucuresti.ro/assets/svg/logo1.svg?1'
+                  ))

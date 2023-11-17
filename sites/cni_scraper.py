@@ -32,10 +32,6 @@ def collect_data_from_API():
                 })
     return list_with_data
 #
-print(collect_data_from_API())
-#
-#
-print(collect_data_from_API())
 #
 # update data on peviitor!
 @update_peviitor_api

@@ -34,3 +34,4 @@ jobs:
       run: |
         python3 sites/A_OOI_main.py
         python3 new_sites/hamilton_scraper.py
+        python3 new_sites/imc_scraper.py

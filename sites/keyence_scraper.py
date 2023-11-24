@@ -60,12 +60,13 @@ def collect_data_from_site():
         title = data.text
 
         lst_with_data.append({
-                    "id": str(uuid.uuid4()),
                     "job_title": title,
                     "job_link": link,
                     "company": "keyence",
                     "country": "Romania",
-                    "city": "Romania"
+                    "county": "Timis",
+                    "city": "Timisoara",
+                    "remote": "on-site",
                     })
 
     return lst_with_data

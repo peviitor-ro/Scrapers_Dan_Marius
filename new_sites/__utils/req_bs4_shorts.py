@@ -61,7 +61,7 @@ class GetRequestJson:
             return None
 
 
-class PostRequestsJson:
+class PostRequestJson:
     '''
     ... This class return JSON object from post requests!
     '''
@@ -75,13 +75,19 @@ class PostRequestsJson:
 
         response = session.post(url, headers=headers, data=data_raw)
 
-        # Parse response to JSON and return ditct oject
+        # Parse response to JSON or to soup object
         try:
             json_response = response.json()
             return json_response
         except ValueError as e:
-            print(f"Errors. No JSON! Details: {e}")
-            return None
+            pass
+
+        # second try
+        try:
+            html_response = response.text
+            return BeautifulSoup(html_response, 'lxml')
+        except ValueError as e:
+            pass
 
 
 class GetHtmlSoup:

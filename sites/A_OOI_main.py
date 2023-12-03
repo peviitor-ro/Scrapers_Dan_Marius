@@ -7,6 +7,7 @@ exclude = ['__init__.py',
            'A_OOI_main.py',
            '000_delete_api_data.py',
            'L_00_logo.py',
+           'found_county.py',
            ]
 
 path = os.path.dirname(os.path.abspath(__file__))

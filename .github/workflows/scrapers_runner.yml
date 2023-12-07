@@ -33,4 +33,3 @@ jobs:
         API_KEY: ${{ secrets.API_KEY }}
       run: |
         python3 sites/A_OOI_main.py
-        python3 new_sites/__main_RunnerFile.py

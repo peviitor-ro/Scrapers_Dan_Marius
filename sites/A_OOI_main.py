@@ -3,6 +3,8 @@ import subprocess
 
 # exclude files
 exclude = ['__init__.py',
+           '__create_scraper.py',
+           '__main_RunnerFile.py',
            'A_OO_get_post_soup_update_dec.py',
            'A_OOI_main.py',
            '000_delete_api_data.py',

@@ -1,6 +1,7 @@
 # Company ---> promelek
 # Link ------> https://promelek.ro/cariere
 import re
+import unicodedata
 from __utils import (
     GetDynamicSoup,
     get_county,
@@ -19,13 +20,15 @@ def scraper():
     for job in soup.find_all('div', class_="fr-view HtmlBlock_html"):
         #get jobs items from response
         if job.find('a') and (not job.find('div')):
-            town=re.search(r'Locație:\s*(.*?)<\/div>', job)
-            link=job.find('a')['href']
+            oras=re.search(r"Locație:\s+(.*)", str(job))
+            town=oras.group(1)[:-6]
+            link="https://promelek.ro/"+job.find('a')['href']
             judet=get_county(town)
+            job_title=job.find('a').text
             job_list.append(Item(
-                job_title=job.job.find('a').text,
+                job_title = unicodedata.normalize('NFKD', job_title).encode('ascii', 'ignore').decode('utf-8'),
                 job_link=link,
-                company='imc',
+                company='promelek',
                 country='Romania',
                 county=judet,
                 city=town,
@@ -47,8 +50,9 @@ def main():
     jobs = scraper()
 
 
-    #UpdateAPI().update_jobs(company_name, jobs)
-    #UpdateAPI().update_logo(company_name, logo_link)
+
+    UpdateAPI().update_jobs(company_name, jobs)
+    UpdateAPI().update_logo(company_name, logo_link)
 
 
 if __name__ == '__main__':

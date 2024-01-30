@@ -28,7 +28,7 @@ def get_server_data(link: str):
     
     return php_session_id, cloudflare_id
 
-def prepare_headers() -> tuple[str]:
+def prepare_headers():
     '''
     prepare headers.
     '''

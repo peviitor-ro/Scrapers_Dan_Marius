@@ -1,7 +1,7 @@
 # Scrapers_Dan_Marius
 Scrapers written in Python3
 
-## The job offers for the companies websites scraped by this smart scrapers can be found on: https://peviitor.ro/
+## The job offers for the companies websites scraped by this smart scrapers can be found [in the future](https://peviitor.ro/)
 
 Among the libraries used:
 

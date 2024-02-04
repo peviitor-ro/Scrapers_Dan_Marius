@@ -1,29 +1,30 @@
-# New scraper for -> Apanova Bucuresti
-# Acronis job page -> https://www.apanovabucuresti.ro/despre-noi/cariere
+# New scraper for -> Color Control
+# Job page -> https://www.colorcontrol.ro/cariere/
 from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
 from L_00_logo import update_logo
 #
 import requests
 from bs4 import BeautifulSoup
-import uuid
+
 #
 def collect_data_from_API():
 # function to return a list with JSON data
-    response=requests.get ('https://www.apanovabucuresti.ro/despre-noi/cariere', headers=DEFAULT_HEADERS)
+    response=requests.get ('https://www.colorcontrol.ro/cariere/', headers=DEFAULT_HEADERS)
     soup=BeautifulSoup(response.text, 'lxml')
-    soup_data =soup.find_all('div', class_="jobInfo")
+    soup_data =soup.find('div', class_="menu-available-jobs-container")
+    list_items=soup_data.find_all('li')
     list_with_data=[]
-    for dt in soup_data:
+    for dt in list_items:
         title=dt.find('a').text
         link=dt.find('a')['href']
         #
         list_with_data.append({
                     "job_title": title,
-                    "job_link":  'https://www.apanovabucuresti.ro/despre-noi/' + link,
-                    "company": "ApanovaBucuresti",
+                    "job_link": link,
+                    "company": "Colorcontrol",
                     "country": "Romania",
-                    "county": 'Bucuresti',
-                    "city": 'Bucuresti'
+                    "county": 'Cluj',
+                    "city": 'Cluj-Napoca'
                 })
     return list_with_data
 #
@@ -38,10 +39,11 @@ def scrape_and_update_peviitor(company_name, data_list):
     return data_list
 
 
-company_name = 'ApanovaBucuresti'  # add test comment
+company_name = 'Colorcontrol'  # add test comment
 data_list = collect_data_from_API()
+print(data_list)
 scrape_and_update_peviitor(company_name, data_list)
 
-print(update_logo('ApanovaBucuresti',
-                  'https://www.apanovabucuresti.ro/assets/svg/logo1.svg?1'
-                  ))
+update_logo('Colorcontrol',
+                  'https://www.colorcontrol.ro/wp-content/uploads/2016/10/ccs-logo.svg'
+                  )

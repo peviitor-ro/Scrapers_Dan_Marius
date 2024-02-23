@@ -3,12 +3,15 @@
 #
 # New scraper for -> SC MAVIPROD SRL
 # Acronis job page -> https://www.maviprod.ro/despre-noi/cariere/
+import requests
+import unicodedata
+from bs4 import BeautifulSoup
+
 from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
 from L_00_logo import update_logo
-import unicodedata
-import requests
-from bs4 import BeautifulSoup
 from __utils import get_county
+
+
 #
 def collect_data_from_API():
 # function to return a list with JSON data

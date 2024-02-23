@@ -12,8 +12,8 @@
 #  ... dynamic_render
 #  ... custom
 #
-import sys
 import os
+import sys
 
 
 #  ---------------------> STATIC SCRAPER <---------------------

@@ -1,10 +1,12 @@
 # New scraper for -> Color Control
 # Job page -> https://www.colorcontrol.ro/cariere/
-from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
-from L_00_logo import update_logo
 #
 import requests
 from bs4 import BeautifulSoup
+
+from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
+from L_00_logo import update_logo
+
 
 #
 def collect_data_from_API():

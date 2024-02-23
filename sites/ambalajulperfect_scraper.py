@@ -1,28 +1,26 @@
 # Company ---> Ambalajulperfect
 # Link ------> https://ambalajulperfect.ro/cariere/
-import re
 import unicodedata
-from __utils import (
-    GetDynamicSoup,
-    get_county,
-    get_job_type,
-    Item,
-    UpdateAPI,
-)
+
+from sites.__utils.dynamic_requests_html_shorts import GetDynamicSoup
+from sites.__utils.items_struct import Item
+from sites.__utils.peviitor_update import UpdateAPI
+
 
 def scraper():
     '''
     ... scrape data from imc scraper.
     '''
-    
+
     soup = GetDynamicSoup("https://ambalajulperfect.ro/cariere/")
     job_list = []
-    first_soup=soup.find('section', class_="elementor-section elementor-inner-section elementor-element elementor-element-b9cb928 elementor-section-boxed elementor-section-height-default elementor-section-height-default")
+    first_soup = soup.find('section',
+                           class_="elementor-section elementor-inner-section elementor-element elementor-element-b9cb928 elementor-section-boxed elementor-section-height-default elementor-section-height-default")
     for job in first_soup.find_all('div', class_="elementor-widget-wrap"):
-        link=job.find('a')['href']
-        job_title=job.find('h5').text.strip()
+        link = job.find('a')['href']
+        job_title = job.find('h5').text.strip()
         job_list.append(Item(
-            job_title = unicodedata.normalize('NFKD', job_title).encode('ascii', 'ignore').decode('utf-8'),
+            job_title=unicodedata.normalize('NFKD', job_title).encode('ascii', 'ignore').decode('utf-8'),
             job_link=link,
             company='Ambalajulperfect',
             country='Romania',

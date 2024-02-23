@@ -1,14 +1,14 @@
 # Company ---> rottaprint
 # Link ------> https://rottaprint.com/ro/cariere/
-import re
 import unicodedata
+
 from __utils import (
     GetDynamicSoup,
     get_county,
-    get_job_type,
     Item,
     UpdateAPI,
 )
+
 
 def scraper():
     '''

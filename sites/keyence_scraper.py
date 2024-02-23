@@ -5,14 +5,15 @@
 # Company -> keyence
 # Link ----> https://www.keyencecareer.eu/romania.html
 #
-from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
-from L_00_logo import update_logo
 #
-from requests_html import HTMLSession
+from time import sleep
+
 from bs4 import BeautifulSoup
 #
-import uuid
-from time import sleep
+from requests_html import HTMLSession
+
+from A_OO_get_post_soup_update_dec import update_peviitor_api
+from L_00_logo import update_logo
 
 
 def make_bs4_object(requests_html_object) -> BeautifulSoup:

@@ -2,11 +2,11 @@
 # Company - > dm
 # Link -> https://www.dm-jobs.com/Romania/?locale=ro_RO
 #
-from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS,update_peviitor_api
-from L_00_logo import update_logo
 import requests
-from found_county import get_county
 
+from A_OO_get_post_soup_update_dec import update_peviitor_api
+from L_00_logo import update_logo
+from found_county import get_county
 
 
 def get_jobs():

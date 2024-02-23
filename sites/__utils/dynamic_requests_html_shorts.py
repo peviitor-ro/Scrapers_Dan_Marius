@@ -5,9 +5,9 @@
 #  Use requests_html for dynamic rendering;
 #
 #
-from requests_html import HTMLSession
 from bs4 import BeautifulSoup
-
+from requests_html import HTMLSession
+import requests
 from .default_headers import DEFAULT_HEADERS
 
 
@@ -17,7 +17,6 @@ class GetDynamicSoup:
     '''
 
     def __new__(cls, link, custom_headers=None):
-
         session = HTMLSession()
 
         headers = DEFAULT_HEADERS.copy()

@@ -1,5 +1,6 @@
-import requests
 import json
+
+import requests
 
 
 def update_logo(id: str, logo_url: str):

@@ -3,12 +3,14 @@
 #
 # New scraper for -> COMPANIA NATIONALA DE INVESTITII
 # Acronis job page -> https://www.cni.ro/despre-noi#
-from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
-from L_00_logo import update_logo
 #
 import requests
 from bs4 import BeautifulSoup
-import uuid
+
+from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
+from L_00_logo import update_logo
+
+
 #
 def collect_data_from_API():
 # function to return a list with JSON data

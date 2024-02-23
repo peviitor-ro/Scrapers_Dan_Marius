@@ -1,13 +1,15 @@
+import time
 from random import randint
-import re
+
+import requests
+from bs4 import BeautifulSoup
+
 from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
 from L_00_logo import update_logo
-#
-
-from bs4 import BeautifulSoup
-import time
-import requests
 from __utils import get_county
+
+
+#
 
 
 def request_and_collect_data(page):

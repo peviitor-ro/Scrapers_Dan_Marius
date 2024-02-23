@@ -1,14 +1,16 @@
 # Company ---> promelek
 # Link ------> https://promelek.ro/cariere
 import re
+
 import unicodedata
+
 from __utils import (
     GetDynamicSoup,
     get_county,
-    get_job_type,
     Item,
     UpdateAPI,
 )
+
 
 def scraper():
     '''

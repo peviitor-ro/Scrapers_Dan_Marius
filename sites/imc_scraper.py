@@ -4,7 +4,6 @@
 from __utils import (
     GetDynamicSoup,
     get_county,
-    get_job_type,
     Item,
     UpdateAPI,
 )

@@ -5,13 +5,13 @@
 # Respect DRY
 # This decorator have: default headers and soup and update data on peviitor.ro!
 #
-import requests
-#
-import os  # I do not have API KEY
 #
 import json
+#
+import os  # I do not have API KEY
 import time
 
+import requests
 
 DEFAULT_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.4044.113 Safari/5370.36 Brave/9085',

@@ -1,5 +1,6 @@
-import requests
 import os
+
+import requests
 
 
 def clean_data(company_name: str) -> None:

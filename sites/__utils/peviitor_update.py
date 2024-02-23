@@ -5,13 +5,14 @@
 #  ... OOP version
 #
 #
-import requests
-#
-import os  # I do not have API KEY
 #
 import json
 #
+import os  # I do not have API KEY
+#
 import time
+
+import requests
 
 
 class UpdateAPI:

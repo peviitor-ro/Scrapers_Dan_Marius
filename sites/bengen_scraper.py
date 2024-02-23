@@ -1,10 +1,13 @@
 # New scraper for -> Bengen
-from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
-from L_00_logo import update_logo
+import json
+import re
+
 #
 import requests
-import re
-import json
+
+from A_OO_get_post_soup_update_dec import update_peviitor_api
+from L_00_logo import update_logo
+
 
 def get_server_data(link: str):
     '''

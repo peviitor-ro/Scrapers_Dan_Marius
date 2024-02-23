@@ -1,13 +1,10 @@
 # Company ---> hamilton
 # Link ------> https://jobs.hamilton.ch/en/open-positions/?country%5B%5D=romania
 #
-from __utils import (
-    GetDynamicSoup,
-    get_county,
-    get_job_type,
-    Item,
-    UpdateAPI,
-)
+from sites.__utils.dynamic_requests_html_shorts import GetDynamicSoup
+from sites.__utils.found_county import get_county
+from sites.__utils.items_struct import Item
+from sites.__utils.peviitor_update import UpdateAPI
 
 def scraper():
     '''

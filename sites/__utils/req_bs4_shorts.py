@@ -9,9 +9,9 @@
 #
 import requests
 from bs4 import BeautifulSoup
+
 #
 from .default_headers import DEFAULT_HEADERS
-
 
 # Global Session -> avoid multiple requests
 # ... and all classes can use it in one script

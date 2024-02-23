@@ -1,11 +1,12 @@
-import requests, unicodedata
 import re
+
+import requests
+import unicodedata
 from bs4 import BeautifulSoup
-from __utils import (
-    get_county,
-    Item,
-    UpdateAPI,
-)
+
+from sites.__utils.found_county import get_county
+from sites.__utils.items_struct import Item
+from sites.__utils.peviitor_update import UpdateAPI
 
 url = "https://altex.ro/cariere/"
 headers = {

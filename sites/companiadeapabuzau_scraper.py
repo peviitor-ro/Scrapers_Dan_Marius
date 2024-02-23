@@ -15,24 +15,26 @@ from L_00_logo import update_logo
 
 #
 def collect_data_from_API():
-# function to return a list with JSON data
-    response=requests.get ('https://www.cabuzau.ro/despre-noi/cariere/', headers=DEFAULT_HEADERS)
-    soup=BeautifulSoup(response.text, 'lxml')
-    soup_data =soup.find_all('article')
-    list_with_data=[]
+    # function to return a list with JSON data
+    response = requests.get('https://www.cabuzau.ro/despre-noi/cariere/', headers=DEFAULT_HEADERS)
+    soup = BeautifulSoup(response.text, 'lxml')
+    soup_data = soup.find_all('article')
+    list_with_data = []
     for dt in soup_data:
-        title=dt.find('h3').text
-        link=dt.find('a')['href']
+        title = dt.find('h3').text
+        link = dt.find('a')['href']
         #
         list_with_data.append({
-                    "id": str(uuid.uuid4()),
-                    "job_title": title,
-                    "job_link": link,
-                    "company": "CompaniaDeApaBuzau",
-                    "country": "Romania",
-                    "city": 'Buzau'
-                })
+            "id": str(uuid.uuid4()),
+            "job_title": title,
+            "job_link": link,
+            "company": "CompaniaDeApaBuzau",
+            "country": "Romania",
+            "city": 'Buzau'
+        })
     return list_with_data
+
+
 #
 #
 # update data on peviitor!
@@ -45,7 +47,7 @@ def scrape_and_update_peviitor(company_name, data_list):
     return data_list
 
 
-company_name = 'CompaniaDeApaBuzau'  
+company_name = 'CompaniaDeApaBuzau'
 data_list = collect_data_from_API()
 scrape_and_update_peviitor(company_name, data_list)
 

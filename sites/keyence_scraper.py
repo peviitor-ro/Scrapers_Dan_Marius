@@ -31,7 +31,8 @@ def config_requests_html() -> HTMLSession:
     '''
 
     session = HTMLSession()
-    session.headers['User-Agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
+    session.headers[
+        'User-Agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
     session.headers['Accept-Language'] = 'en-US,en;q=0.5'
     session.headers['Refer'] = 'https://google.com'
     session.headers['DNT'] = '1'
@@ -61,14 +62,14 @@ def collect_data_from_site():
         title = data.text
 
         lst_with_data.append({
-                    "job_title": title,
-                    "job_link": link,
-                    "company": "keyence",
-                    "country": "Romania",
-                    "county": "Timis",
-                    "city": "Timisoara",
-                    "remote": "on-site",
-                    })
+            "job_title": title,
+            "job_link": link,
+            "company": "keyence",
+            "country": "Romania",
+            "county": "Timis",
+            "city": "Timisoara",
+            "remote": "on-site",
+        })
 
     return lst_with_data
 

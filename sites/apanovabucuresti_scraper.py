@@ -6,27 +6,28 @@ from bs4 import BeautifulSoup
 import requests
 
 
-
 #
 def collect_data_from_API():
-# function to return a list with JSON data
-    response=requests.get ('https://www.apanovabucuresti.ro/despre-noi/cariere', headers=DEFAULT_HEADERS)
-    soup=BeautifulSoup(response.text, 'lxml')
-    soup_data =soup.find_all('div', class_="jobInfo")
-    list_with_data=[]
+    # function to return a list with JSON data
+    response = requests.get('https://www.apanovabucuresti.ro/despre-noi/cariere', headers=DEFAULT_HEADERS)
+    soup = BeautifulSoup(response.text, 'lxml')
+    soup_data = soup.find_all('div', class_="jobInfo")
+    list_with_data = []
     for dt in soup_data:
-        title=dt.find('a').text
-        link=dt.find('a')['href']
+        title = dt.find('a').text
+        link = dt.find('a')['href']
         #
         list_with_data.append({
-                    "job_title": title,
-                    "job_link":  'https://www.apanovabucuresti.ro/despre-noi/' + link,
-                    "company": "ApanovaBucuresti",
-                    "country": "Romania",
-                    "county": 'Bucuresti',
-                    "city": 'Bucuresti'
-                })
+            "job_title": title,
+            "job_link": 'https://www.apanovabucuresti.ro/despre-noi/' + link,
+            "company": "ApanovaBucuresti",
+            "country": "Romania",
+            "county": 'Bucuresti',
+            "city": 'Bucuresti'
+        })
     return list_with_data
+
+
 #
 #
 # update data on peviitor!

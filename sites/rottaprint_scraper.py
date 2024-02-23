@@ -2,29 +2,27 @@
 # Link ------> https://rottaprint.com/ro/cariere/
 import unicodedata
 
-from __utils import (
-    GetDynamicSoup,
-    get_county,
-    Item,
-    UpdateAPI,
-)
+from sites.__utils.dynamic_requests_html_shorts import GetDynamicSoup
+from sites.__utils.items_struct import Item
+from sites.__utils.peviitor_update import UpdateAPI
+from sites.__utils.found_county import get_county
 
 
 def scraper():
     '''
     ... scrape data from imc scraper.
     '''
-    
+
     soup = GetDynamicSoup("https://rottaprint.com/ro/cariere/")
     job_list = []
     for job in soup.find_all('article', class_="job-row post"):
-        #get jobs items from response
-        oras=job.find('div', attrs={'class': 'job-location'}).text.split(',')[0].strip()
-        link=job.find('a')['href']
-        judet=get_county(oras)
-        job_title=job.find('div', attrs={'class': 'job-title'}).text.strip()
+        # get jobs items from response
+        oras = job.find('div', attrs={'class': 'job-location'}).text.split(',')[0].strip()
+        link = job.find('a')['href']
+        judet = get_county(oras)
+        job_title = job.find('div', attrs={'class': 'job-title'}).text.strip()
         job_list.append(Item(
-            job_title = unicodedata.normalize('NFKD', job_title).encode('ascii', 'ignore').decode('utf-8'),
+            job_title=unicodedata.normalize('NFKD', job_title).encode('ascii', 'ignore').decode('utf-8'),
             job_link=link,
             company='rottaprint',
             country='Romania',

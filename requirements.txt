@@ -29,7 +29,7 @@ soupsieve==2.4.1
 tqdm==4.65.0
 trio==0.22.0
 trio-websocket==0.10.3
-urllib3==2.2.0
+urllib3==1.26.16
 uuid==1.30
 w3lib==2.1.1
 webencodings==0.5.1

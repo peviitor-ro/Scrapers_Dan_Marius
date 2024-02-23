@@ -1,18 +1,16 @@
 # Company ---> imc
 # Link ------> https://www.im-c.com/careers/job-offers/
 #
-from __utils import (
-    GetDynamicSoup,
-    get_county,
-    Item,
-    UpdateAPI,
-)
+from sites.__utils.dynamic_requests_html_shorts import GetDynamicSoup
+from sites.__utils.items_struct import Item
+from sites.__utils.peviitor_update import UpdateAPI
+from sites.__utils.found_county import get_county
 
 def scraper():
     '''
     ... scrape data from imc scraper.
     '''
-    
+
     soup = GetDynamicSoup("https://www.im-c.com/careers/job-offers/")
     job_list = []
     for job in soup.find_all('li', attrs={'class': 'result result--post_type_job'}):

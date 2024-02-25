@@ -49,7 +49,7 @@ try:
                 if county is not None:  # Check for existing town
                     county_list.append(county)
             job_list.append(Item(
-                job_title = unicodedata.normalize('NFKD', job_title).encode('ascii', 'ignore').decode('utf-8'),
+                job_title = unicodedata.normalize('NFKD', job_title).encode('ascii', 'ignore').decode('utf-8').title(),
                 job_link=link,
                 company='Altex',
                 country='Romania',

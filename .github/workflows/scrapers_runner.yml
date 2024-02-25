@@ -36,3 +36,7 @@ jobs:
         API_KEY: ${{ secrets.API_KEY }}
       run: |
         python3 sites/A_OOI_main.py
+    - name: Run pytest
+      continue-on-error: true
+      run: |
+        pytest tests/

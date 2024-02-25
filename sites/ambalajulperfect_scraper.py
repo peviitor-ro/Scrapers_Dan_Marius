@@ -2,9 +2,9 @@
 # Link ------> https://ambalajulperfect.ro/cariere/
 import unicodedata
 
-from __utils.dynamic_requests_html_shorts import GetDynamicSoup
-from __utils.items_struct import Item
-from __utils.peviitor_update import UpdateAPI
+from sites.__utils.dynamic_requests_html_shorts import GetDynamicSoup
+from sites.__utils.items_struct import Item
+from sites.__utils.peviitor_update import UpdateAPI
 
 
 def scraper():

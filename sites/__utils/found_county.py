@@ -440,7 +440,7 @@ counties = [
                 "Ludisor", "Selistat", "Valcea", "Savastreni", "Cobor", "Pojorta", "Ionesti", "Malinis", "Valeni",
                 "Paltin", "Fundatica", "Drumul Carului", "Corbi", "Paraul Rece", "Lupsa", "Luta",
                 "Statiunea Climaterica Sambata", "Vistisoara", "Poiana Brasov"]},
-    {"Bucuresti": ["Bucuresti", "Sectorul 1", "Sectorul 2", "Sectorul 3", "Sectorul 4", "Sectorul 5", "Sectorul 6"]},
+    {"Bucuresti": ["Bucuresti", "Bucharest", "Sectorul 1", "Sectorul 2", "Sectorul 3", "Sectorul 4", "Sectorul 5", "Sectorul 6"]},
     {"Buzau": ["Buzau", "Ramnicu Sarat", "Nehoiu", "Pogoanele", "Padina", "Rusetu", "Berca", "Smeeni", "Gheraseni",
                "Parscov", "Stalpu", "Ramnicelu", "Candesti", "Cochirleanca", "Vadu Pasii", "Patarlagele", "Capatanesti",
                "Scurtesti", "Fundeni", "Boldu", "Glodeanu Sarat", "Unguriu", "Oreavul", "Posta Calnau", "Cislau",

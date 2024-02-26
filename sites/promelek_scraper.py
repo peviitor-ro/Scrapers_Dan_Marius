@@ -3,10 +3,10 @@
 import re
 
 import unicodedata
-from __utils.found_county import get_county
-from __utils.dynamic_requests_html_shorts import GetDynamicSoup
-from __utils.items_struct import Item
-from __utils.peviitor_update import UpdateAPI
+from sites.__utils.found_county import get_county
+from sites.__utils.dynamic_requests_html_shorts import GetDynamicSoup
+from sites.__utils.items_struct import Item
+from sites.__utils.peviitor_update import UpdateAPI
 
 
 
@@ -15,18 +15,19 @@ def scraper():
     ... scrape data from imc scraper.
     '''
     
-    soup = GetDynamicSoup("https://promelek.ro/cariere")
+    soup = GetDynamicSoup("https://www.careers-page.com/promelek-xxi")
     job_list = []
-    for job in soup.find_all('div', class_="fr-view HtmlBlock_html"):
-        #get jobs items from response
-        if job.find('a') and (not job.find('div')):
-            oras=re.search(r"Locație:\s+(.*)", str(job))
-            town=oras.group(1)[:-6]
-            link="https://promelek.ro/"+job.find('a')['href']
+    for job in soup.find_all('li', class_="list-group-item row"):
+        if job.find('a'):
+            link = job.find('a')['href']
+            link='https://www.careers-page.com'+link
+            description=job.find('span', class_="col").text.strip()
+            description_soup=GetDynamicSoup(link)
+            location_text=description_soup.find('h5').text.strip()
+            town=location_text.split(',')[0]
             judet=get_county(town)
-            job_title=job.find('a').text
             job_list.append(Item(
-                job_title = unicodedata.normalize('NFKD', job_title).encode('ascii', 'ignore').decode('utf-8'),
+                job_title = unicodedata.normalize('NFKD', description).encode('ascii', 'ignore').decode('utf-8'),
                 job_link=link,
                 company='promelek',
                 country='Romania',
@@ -48,8 +49,6 @@ def main():
     logo_link = "https://promelek.ro/content/files/home%20page/plk_logo_mobil_200.png"
 
     jobs = scraper()
-
-
 
     UpdateAPI().update_jobs(company_name, jobs)
     UpdateAPI().update_logo(company_name, logo_link)

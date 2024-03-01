@@ -55,7 +55,7 @@ def main():
     logo_link = "https://www.deichmann-cariere.ro/wp-content/themes/karriere/deichmann.svg"
 
     jobs = scraper()
-    print (jobs)
+
 
     UpdateAPI().update_jobs(company_name, jobs)
     UpdateAPI().update_logo(company_name, logo_link)

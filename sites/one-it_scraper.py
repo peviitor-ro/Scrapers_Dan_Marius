@@ -47,4 +47,4 @@ company_name = 'One-it'
 data_list = collect_data_from_API()
 scrape_and_update_peviitor(company_name, data_list)
 
-print(update_logo('maviprod', 'https://www.one-it.ro/oneitsite/uploads/2019/06/logo_OneIT_255x230px.png'))
+print(update_logo('one-it', 'https://www.one-it.ro/oneitsite/uploads/2019/06/logo_OneIT_255x230px.png'))

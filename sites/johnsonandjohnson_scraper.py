@@ -1,62 +1,62 @@
 import requests
 from bs4 import BeautifulSoup
+import unicodedata
 
-from A_OO_get_post_soup_update_dec import update_peviitor_api
+from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
 from L_00_logo import update_logo
 from __utils.found_county import get_county
 
 
-#
+JOBS_URL = 'https://www.careers.jnj.com/en/jobs/?search=romania&pagesize=20'
+BASE_URL = 'https://www.careers.jnj.com'
+CITY_COUNTY_OVERRIDES = {
+    'Bucuresti': 'Bucuresti',
+}
+
+
+def normalize_city(city):
+    normalized_city = ''.join(
+        char for char in unicodedata.normalize('NFKD', city.strip())
+        if not unicodedata.combining(char)
+    )
+    if normalized_city == 'Bucuresti':
+        return 'Bucuresti'
+    return normalized_city
+
+
 def collect_data_from_API():
-    custom_headers = {
-        "Authority":"jobs.jnj.com",
-        "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language":"en-US,en;q=0.5",
-        "referer":"https://jobs.jnj.com/en/jobs/?search=USA&pagesize=20",
-        "Sec-Fetch-Dest":"document",
-        "Sec-Fetch-Mode":"navigate",
-        "Sec-Fetch-Site":"same-origin",
-        "upgrade-insecure-requests":"1",
-        "User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
-        }
-    try:
-        response = requests.get("https://jobs.jnj.com/en/jobs/?search=romania&pagesize=20", headers=custom_headers)
-        if response.status_code == 200:
-            soup=BeautifulSoup(response.text, 'lxml')
-            soup_data =soup.find_all('div', class_="card-body")
-            list_with_data=[]
-            for dt in soup_data:
-                title=dt.find('a').text
-                link='https://jobs.jnj.com'+dt.find('a')['href']
-                location_info=dt.find_all('li')[1]
-                location=str(location_info).split(">")[1].split(",")[0]
-                if location =='Bucharest':
-                    location='Bucuresti'
-                judet=get_county(location)
-                list_with_data.append({
-                    "job_title": title,
-                    "job_link": link,
-                    "company": "johnsonandjohnson",
-                    "country": "Romania",
-                    "county": judet,
-                    "city": location,
-                    "remote": 'on-site'
-                    })
-            return list_with_data
-    except requests.exceptions.RequestException as e:
-        print("Error:", e)
-#
-# update data on peviitor!
+    response = requests.get(JOBS_URL, headers=DEFAULT_HEADERS, timeout=60)
+    soup = BeautifulSoup(response.text, 'lxml')
+    soup_data = soup.select('ul#js-job-search-results > li.card-job')
+    list_with_data = []
+
+    for job in soup_data:
+        title_tag = job.select_one('h3.PagePromo-title a.js-view-job')
+        location_tag = job.select_one('address.PagePromo-location')
+        if title_tag is None or location_tag is None:
+            continue
+
+        city = normalize_city(location_tag.get_text(' ', strip=True))
+        county = CITY_COUNTY_OVERRIDES.get(city) or get_county(city)
+        list_with_data.append({
+            'job_title': title_tag.get_text(' ', strip=True),
+            'job_link': BASE_URL + title_tag.get('href', '').strip(),
+            'company': 'johnsonandjohnson',
+            'country': 'Romania',
+            'county': county,
+            'city': city,
+            'remote': 'on-site'
+        })
+
+    return list_with_data
+
+
 @update_peviitor_api
 def scrape_and_update_peviitor(company_name, data_list):
-    """
-    Update data on peviitor API!
-    """
-
     return data_list
 
 
-company_name = 'johnsonandjohnson'  
+company_name = 'johnsonandjohnson'
 data_list = collect_data_from_API()
 scrape_and_update_peviitor(company_name, data_list)
 

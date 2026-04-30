@@ -7,6 +7,7 @@ import requests
 
 from A_OO_get_post_soup_update_dec import update_peviitor_api
 from L_00_logo import update_logo
+from _county import translate_city
 
 
 def get_server_data(link: str):
@@ -63,7 +64,7 @@ def get_data():
     id_link = re.findall(r'"id": "(\d+)"', json.dumps(new_response))
     city_data = re.findall(r'"city": "(.*?)"', json.dumps(new_response))
     state_data = re.findall(r'"state": "(.*?)"', json.dumps(new_response))
-    #print(id_job, city_data, id_link, state_data)
+
     list_jobs = []
     for i in range(1, len(id_job) + 1):
         list_jobs.append({
@@ -71,8 +72,8 @@ def get_data():
             "job_link": "https://bengenro.bamboohr.com/careers/"+id_link[i-1],
             "company": "bengen",
             "country": "Romania",
-            "county": state_data[i-1],
-            "city": city_data[i-1],
+            "county": translate_city(city_data[i-1]),
+            "city": translate_city(state_data[i-1]),
             "remote":"on-site"
             })
     return list_jobs

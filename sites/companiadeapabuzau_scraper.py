@@ -25,12 +25,13 @@ def collect_data_from_API():
         link = dt.find('a')['href']
         #
         list_with_data.append({
-            "id": str(uuid.uuid4()),
             "job_title": title,
             "job_link": link,
             "company": "CompaniaDeApaBuzau",
             "country": "Romania",
-            "city": 'Buzau'
+            "city": 'Buzau',
+            "county": 'Buzau',
+            "remote": 'on-site'
         })
     return list_with_data
 

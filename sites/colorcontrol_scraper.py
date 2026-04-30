@@ -1,33 +1,52 @@
 # New scraper for -> Color Control
-# Job page -> https://www.colorcontrol.ro/cariere/
-#
+# Job page -> https://colorcontrol.ro/vacancies
+
+import re
+
 import requests
-from bs4 import BeautifulSoup
 
 from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
 from L_00_logo import update_logo
 
 
-#
+VACANCIES_URL = 'https://colorcontrol.ro/vacancies'
+BUNDLE_URL = 'https://colorcontrol.ro/assets/index-BHDMwuLD.js'
+COMPANY_CITY = 'Apahida'
+COMPANY_COUNTY = 'Cluj'
+
+
 def collect_data_from_API():
-    # function to return a list with JSON data
-    response = requests.get('https://www.colorcontrol.ro/cariere/', headers=DEFAULT_HEADERS)
-    soup = BeautifulSoup(response.text, 'lxml')
-    soup_data = soup.find('div', class_="menu-available-jobs-container")
-    list_items = soup_data.find_all('li')
+    """Return current vacancies from the site bundle."""
+
+    response = requests.get(BUNDLE_URL, headers=DEFAULT_HEADERS)
+    vacancy_pattern = re.compile(
+        r'id:"([^"]+)",title:"([^"]+)"(?:,titleRo:"([^"]+)")?,'
+        r'department:"([^"]+)"(?:,departmentRo:"([^"]+)")?,'
+        r'location:"([^"]+)"(?:,locationRo:"([^"]+)")?,type:"([^"]+)"'
+    )
+
     list_with_data = []
-    for dt in list_items:
-        title = dt.find('a').text
-        link = dt.find('a')['href']
-        #
+    for job_id, title, title_ro, _department, _department_ro, location, _location_ro, job_type in vacancy_pattern.findall(response.text):
+        city = COMPANY_CITY
+        county = COMPANY_COUNTY
+
+        if 'Apahida' in location:
+            city = 'Apahida'
+        elif 'Cluj-Napoca' in location:
+            city = 'Cluj-Napoca'
+        elif 'Sannicoara' in location or 'Sânnicoara' in location:
+            city = 'Sannicoara'
+
         list_with_data.append({
-            "job_title": title,
-            "job_link": link,
+            "job_title": title_ro or title,
+            "job_link": f'{VACANCIES_URL}#{job_id}',
             "company": "Colorcontrol",
             "country": "Romania",
-            "county": 'Cluj',
-            "city": 'Cluj-Napoca'
+            "county": county,
+            "city": city,
+            "remote": 'on-site'
         })
+
     return list_with_data
 
 
@@ -43,11 +62,10 @@ def scrape_and_update_peviitor(company_name, data_list):
     return data_list
 
 
-company_name = 'Colorcontrol'  # add test comment
+company_name = 'Colorcontrol'
 data_list = collect_data_from_API()
-print(data_list)
 scrape_and_update_peviitor(company_name, data_list)
 
 update_logo('Colorcontrol',
-            'https://www.colorcontrol.ro/wp-content/uploads/2016/10/ccs-logo.svg'
+            'https://www.colorcontrol.ro/og-image.png'
             )

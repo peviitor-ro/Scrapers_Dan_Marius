@@ -4,38 +4,77 @@ from __utils.found_county import get_county
 from bs4 import BeautifulSoup
 import requests
 import unicodedata
+
+CITY_COUNTY_OVERRIDES = {
+    'Marsa': 'Sibiu',
+    'Selimbar': 'Sibiu',
+}
+
+
+def normalize_text(value):
+    return ''.join(
+        c for c in unicodedata.normalize('NFKD', value.strip())
+        if not unicodedata.combining(c)
+    )
+
+
+def extract_locations(job):
+    header = job.find('div', class_='accordion-header')
+    location_tag = header.find('p', class_='tag_name', string=lambda text: text and 'Locație:' in text)
+    locations = []
+
+    if location_tag:
+        raw_locations = location_tag.get_text(' ', strip=True).replace('Locație:', '').split(',')
+        for location in raw_locations:
+            cleaned_location = normalize_text(location)
+            if cleaned_location in {'', 'Hibrid', 'Sediu Central', 'Santier Timisoara'}:
+                continue
+            if 'Sant' in cleaned_location and 'tara' in cleaned_location.lower():
+                continue
+            locations.append(cleaned_location)
+
+    body_text = normalize_text(job.get_text(' ', strip=True))
+    body_locations = []
+    for city in ['Selimbar', 'Marsa', 'Sibiu', 'Bucuresti', 'Timisoara', 'Craiova', 'Huedin', 'Ploiesti']:
+        if city in body_text and city not in body_locations:
+            body_locations.append(city)
+
+    if body_locations:
+        merged_locations = []
+        for city in body_locations + locations:
+            if city not in merged_locations:
+                merged_locations.append(city)
+        return merged_locations
+
+    if locations:
+        return locations
+
+    return []
+
+
 def collect_data_from_API():
     response = requests.get('https://cona.ro/cariere/', headers=DEFAULT_HEADERS)
     soup = BeautifulSoup(response.text, 'lxml')
-    #print (soup)
     soup_data = soup.find_all('div', class_="accordion-item")
-    #print (soup_data)
     list_with_data = []
     for dt in soup_data:
-        title = dt.find('h3').text
-        locations=dt.find_all('span', class_="tag_name")
-        all_locations=[]
-        for loc in locations:
-            location_text = loc.text.strip()  # Remove any leading/trailing spaces
-            if (location_text == 'Şantiere în ţară') or (location_text =='Sediu Central') or (location_text == 'jud.Sibiu'):
-                continue
-            else:
-                location_text = ''.join(c for c in unicodedata.normalize('NFKD', location_text) if not unicodedata.combining(c))
-                all_locations.append(location_text)
-        county_list=[]
+        title_tag = dt.find('h3', class_='job_title')
+        title = title_tag.get_text(' ', strip=True)
+        all_locations = extract_locations(dt)
+        county_list = []
         for town in all_locations:
-            county=get_county(town)
-            if county is not None:  # Check for existing town
+            county = CITY_COUNTY_OVERRIDES.get(town) or get_county(town)
+            if county is not None and county not in county_list:
                 county_list.append(county)
-        #link = dt.find('a')['href']
-        #
+
         list_with_data.append({
             "job_title": title,
-            "job_link": 'https://cona.ro/cariere/'+'#'+title,
+            "job_link": f"https://cona.ro/cariere/#{title_tag.get('id')}",
             "company": "Cona",
             "country": "Romania",
             "county": county_list,
-            "city": all_locations
+            "city": all_locations,
+            "remote": 'on-site'
         })
     return list_with_data
 # update data on peviitor!
@@ -44,6 +83,5 @@ def scrape_and_update_peviitor(company_name, data_list):
     return data_list
 company_name = 'Cona'
 data_list = collect_data_from_API()
-print(data_list)
 scrape_and_update_peviitor(company_name, data_list)
 print(update_logo('Cona', 'https://cona.ro/wp-content/uploads/2023/09/cona-logo-1.svg'))

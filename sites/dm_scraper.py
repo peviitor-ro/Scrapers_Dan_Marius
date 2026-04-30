@@ -1,6 +1,6 @@
 #
 # Company - > dm
-# Link -> https://www.dm-jobs.com/Romania/?locale=ro_RO
+# Link -> https://www.dm-jobs.ro/job-listing/
 #
 import requests
 
@@ -9,52 +9,84 @@ from L_00_logo import update_logo
 from found_county import get_county
 
 
+SEARCH_URL = 'https://searchui.search.windows.net/indexes/dm-prod/docs/search?api-version=2019-05-06'
+SEARCH_HEADERS = {
+    'Accept': '*/*',
+    'Content-Type': 'application/json;charset=UTF-8',
+    'api-key': '6BBD74F1CBD41E5B0232FB05C5B78ED9',
+    'Origin': 'https://www.dm-jobs.ro',
+    'Referer': 'https://www.dm-jobs.ro/job-listing/',
+    'User-Agent': 'Mozilla/5.0',
+}
+CITY_COUNTY_OVERRIDES = {
+    'Tunari': 'Ilfov',
+    'Floresti': 'Cluj',
+    'Balotesti': 'Ilfov',
+    'Manastirea': 'Dambovita',
+    'BUCURESTI SECTOR 1': 'Bucuresti',
+}
+
+
+def fetch_jobs_page(skip=0, top=20):
+    payload = {
+        'count': True,
+        'facets': [],
+        'filter': "brand eq 'Romania'",
+        'search': '*',
+        'skip': skip,
+        'top': top,
+        'orderby': 'datePosted desc'
+    }
+    response = requests.post(SEARCH_URL, json=payload, headers=SEARCH_HEADERS, timeout=60)
+    return response.json()
+
+
+def extract_city(job):
+    addresses = job.get('addresses') or []
+    if addresses:
+        first_address = addresses[0]
+        return first_address.get('altCity') or first_address.get('city') or ''
+
+    filter_location = (job.get('filter2') or '').strip().split(' ', 1)
+    if len(filter_location) == 2:
+        return filter_location[1].strip()
+
+    return ''
+
+
+def get_remote(job):
+    work_hours = (job.get('workHours') or '').strip().lower()
+    if work_hours == 'part-time':
+        return 'part-time'
+    if work_hours == 'full time':
+        return 'full-time'
+    if work_hours == 'full-time':
+        return 'full-time'
+    return 'on-site'
+
+
 def get_jobs():
     list_jobs = []
+    first_page = fetch_jobs_page()
+    total_results = first_page.get('@odata.count', 0)
+    jobs = list(first_page.get('value', []))
 
-    url = "https://searchui.search.windows.net/indexes/dm-prod/docs/search?api-version=2019-05-06&"
+    for skip in range(len(jobs), total_results, 20):
+        jobs.extend(fetch_jobs_page(skip=skip).get('value', []))
 
-    payload = {
-        "count": True,
-        "facets": [],
-        "filter": "brand eq 'Romania' and isFeatured eq true and datePosted lt 2023-12-03T15:26:41.909Z",
-        "search": "*",
-        "skip": 0,
-        "top": 9
-    }
-    headers = {
-        "Accept": "*/*",
-        "Accept-Encoding": "gzip,deflate,br",
-        "Accept-Language": "en-US,en;q=0.5",
-        "api-key": "6BBD74F1CBD41E5B0232FB05C5B78ED9",
-        "Connection": "keep-alive",
-        "Content-Length": "152",
-        "Content-Type": "application/json;charset=UTF-8",
-        "Host": "searchui.search.windows.net",
-        "Origin": "https://www.dm-jobs.com",
-        "Referer": "https://www.dm-jobs.com/",
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "cross-site",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:120.0) Gecko/20100101 Firefox/120.0"
-    }
-
-    response = requests.post(url=url, json=payload, headers=headers).json()['value']
-
-    for job in response:
-        title = job['title']
-        link = job['link']
-        location = job['filter2'].split(" ")[1]
-        county = get_county(location)
+    for job in jobs:
+        location = extract_city(job)
+        county = CITY_COUNTY_OVERRIDES.get(location) or (get_county(location) if location else None)
         list_jobs.append({
-            "job_title": title,
-            "job_link": link,
+            "job_title": job.get('title', '').strip(),
+            "job_link": job.get('link', '').strip(),
             "company": "dm",
             "country": "Romania",
             "county": county,
             "city": location,
-            "remote": "on-site"
+            "remote": get_remote(job)
         })
+
     return list_jobs
 
 
@@ -74,5 +106,5 @@ data_list = get_jobs()
 scrape_and_update_peviitor(company_name, data_list)
 
 print(update_logo('dm',
-                  'https://rmkcdn.successfactors.com/92a07e84/2e517b1f-4262-4ee9-bf14-9.png'
+                  'https://a.storyblok.com/f/290615/97x74/d61d5cd898/dm-logo.svg'
                   ))

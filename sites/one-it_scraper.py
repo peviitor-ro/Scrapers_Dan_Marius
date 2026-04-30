@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
 from L_00_logo import update_logo
-from sites.__utils.found_county import get_county
+from __utils.found_county import get_county
 
 
 #

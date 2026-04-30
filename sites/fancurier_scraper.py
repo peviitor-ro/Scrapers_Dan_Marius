@@ -1,5 +1,7 @@
-import time
-from random import randint
+import html
+import json
+import re
+import unicodedata
 
 import requests
 from bs4 import BeautifulSoup
@@ -9,90 +11,133 @@ from L_00_logo import update_logo
 from __utils.found_county import get_county
 
 
-#
+BRANCH_URLS = [
+    'https://www.fancourier.ro/cariere/comercial/',
+    'https://www.fancourier.ro/cariere/resurse-umane/',
+    'https://www.fancourier.ro/cariere/it/',
+    'https://www.fancourier.ro/cariere/logistica/',
+]
+CITY_COUNTY_OVERRIDES = {
+    'Bucuresti': 'Bucuresti',
+    'Iasi': 'Iasi',
+    'Stefanestii de Jos': 'Ilfov',
+}
 
 
-def request_and_collect_data(page):
-    """
-    ... this func() make a simple requests
-    and collect data from API.
-    """
+def normalize_text(value):
+    return ''.join(
+        char for char in unicodedata.normalize('NFKD', value.strip())
+        if not unicodedata.combining(char)
+    )
 
-    response = requests.get(url=f'https://www.ejobs.ro/company/fan-courier/51755/{page}',
-                            headers=DEFAULT_HEADERS)
+
+def clean_city_name(value):
+    city = normalize_text(value)
+    city = re.sub(r'\s+', ' ', city)
+    city = city.strip(' -,/')
+    city = city.replace('Bucuresti Sector 1', 'Bucuresti')
+    city = city.replace('Bucuresti Sector 2', 'Bucuresti')
+    city = city.replace('Bucuresti Sector 3', 'Bucuresti')
+    city = city.replace('Bucuresti Sector 4', 'Bucuresti')
+    city = city.replace('Bucuresti Sector 5', 'Bucuresti')
+    city = city.replace('Bucuresti Sector 6', 'Bucuresti')
+    city = city.replace('Stefanestii De Jos', 'Stefanestii de Jos')
+    city = city.replace('Iasi', 'Iasi')
+    city = city.replace('Cluj Napoca', 'Cluj-Napoca')
+    return city
+
+
+def extract_title_locations(job_title):
+    normalized_title = normalize_text(job_title)
+    title_suffix = normalized_title.split('-', 1)
+    if len(title_suffix) != 2:
+        return []
+
+    location_part = title_suffix[1]
+    raw_locations = re.split(r'/|,| si ', location_part)
+    title_locations = []
+    for raw_location in raw_locations:
+        city = clean_city_name(raw_location)
+        if not city:
+            continue
+        if get_county(city) or CITY_COUNTY_OVERRIDES.get(city):
+            if city not in title_locations:
+                title_locations.append(city)
+    return title_locations
+
+
+def get_job_locations(job):
+    title_locations = extract_title_locations(job.get('title', ''))
+    if title_locations:
+        return title_locations
+
+    locality = clean_city_name(job.get('locality') or '')
+    if locality:
+        return [locality]
+
+    location = clean_city_name(job.get('location') or '')
+    if location and (get_county(location) or CITY_COUNTY_OVERRIDES.get(location)):
+        return [location]
+
+    return []
+
+
+def extract_jobs_from_branch(branch_url):
+    response = requests.get(branch_url, headers=DEFAULT_HEADERS, timeout=60)
     soup = BeautifulSoup(response.text, 'lxml')
-    soup_data = soup.find_all('div', attrs={'class': 'JobCard'})
+    data_node = soup.find('div', id='vite-react-division')
+    if data_node is None:
+        return []
 
-    lst_data = []
+    raw_jobs = data_node.get('data-jobs') or '[]'
+    jobs = json.loads(html.unescape(raw_jobs))
+    branch_jobs = []
 
-    for job in soup_data:
+    for job in jobs:
+        locations = get_job_locations(job)
+        counties = []
+        for city in locations:
+            county = CITY_COUNTY_OVERRIDES.get(city) or get_county(city)
+            if county and county not in counties:
+                counties.append(county)
 
-        city=job.find('span', attrs={'class': 'JCContentMiddle__Info'}).text.strip()
-        all_towns = city.split(", ")
-        all_counties=[]
-        for town in all_towns:
-            county=get_county(town)
-            all_counties.append(county)
-        lst_data.append({
-            "job_title": job.find('h2', attrs={'class': 'JCContentMiddle__Title'}).find('a').text,
-            "job_link": 'https://www.ejobs.ro' + job.find('h2', attrs={'class': 'JCContentMiddle__Title'}).find('a')[
-                'href'],
-            "company": "Fancourier",
-            "country": "Romania",
-            "county": all_counties,            
-            "city": all_towns,
-            "remote": "on-site",
+        branch_jobs.append({
+            'job_title': job.get('title', '').strip(),
+            'job_link': (job.get('link') or '').strip(),
+            'company': 'Fancourier',
+            'country': 'Romania',
+            'county': counties,
+            'city': locations,
+            'remote': 'on-site',
         })
 
-    job_links_seen = set()
-    final_lst_data = []
-    for data in lst_data:
-        job_link = data['job_link']
-        if job_link not in job_links_seen:
-            job_links_seen.add(job_link)
-            final_lst_data.append(data)
-
-    return final_lst_data
+    return branch_jobs
 
 
-def scrape_all_data_from_() -> list:
-    """
-    Scrap all data from , and return big list.
-    """
+def collect_data_from_API():
+    list_with_data = []
+    seen_links = set()
 
-    page = 1
-    flag = True
+    for branch_url in BRANCH_URLS:
+        for job in extract_jobs_from_branch(branch_url):
+            job_link = job['job_link']
+            if not job_link or job_link in seen_links:
+                continue
+            seen_links.add(job_link)
+            list_with_data.append(job)
 
-    big_lst_jobs = []
-    while flag:
+    return list_with_data
 
-        # collect data from site!
-        data_site = request_and_collect_data(page)
 
-        if data_site:
-            big_lst_jobs.extend(data_site)
-
-        else:
-            flag = False
-
-        page += 1
-        time.sleep(randint(1, 2))
-
-    return big_lst_jobs
-
-# update data on peviitor!
 @update_peviitor_api
 def scrape_and_update_peviitor(company_name, data_list):
-    """
-    Update data on peviitor API!
-    """
-
     return data_list
-company_name = 'Fancourier'  # add test comment
-data_list = scrape_all_data_from_()
+
+
+company_name = 'Fancourier'
+data_list = collect_data_from_API()
 scrape_and_update_peviitor(company_name, data_list)
 
 print(update_logo('Fancourier',
                   'https://www.fancourier.ro/wp-content/uploads/2023/03/logo.svg'
                   ))
-#print(data_list)

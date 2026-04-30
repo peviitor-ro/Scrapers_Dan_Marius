@@ -1,9 +1,6 @@
-##
-#
-#
 # New scraper for -> COMPANIA NATIONALA DE INVESTITII
-# Acronis job page -> https://www.cni.ro/despre-noi#
-#
+# Careers page -> https://www.cni.ro/noutati/anunturi
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -11,30 +8,38 @@ from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
 from L_00_logo import update_logo
 
 
-#
 def collect_data_from_API():
-# function to return a list with JSON data
-    response=requests.get ('https://www.cni.ro/despre-noi#', headers=DEFAULT_HEADERS)
-    soup=BeautifulSoup(response.text, 'lxml')
-    soup_data =soup.find('div', id="item4")
-    soup_data_final= soup_data.find_all('li')
-    list_with_data=[]
-    for dt in soup_data_final:
-        title=dt.text.split('.')[0]
-        link=dt.find('a')['href']
-        #
+    """Return announcements from the current CNI page."""
+
+    response = requests.get('https://www.cni.ro/noutati/anunturi', headers=DEFAULT_HEADERS)
+    soup = BeautifulSoup(response.text, 'lxml')
+    list_with_data = []
+    seen_links = set()
+
+    for anchor in soup.find_all('a', href=True):
+        title_tag = anchor.find('h2')
+        if not title_tag:
+            continue
+
+        title = title_tag.get_text(' ', strip=True)
+        link = anchor['href'].strip()
+        if not title or not link or link in seen_links:
+            continue
+
+        seen_links.add(link)
         list_with_data.append({
-                    "job_title": title,
-                    "job_link": link,
-                    "company": "CNI",
-                    "country": "Romania",
-                    "county": 'Bucuresti',
-                    "city": 'Bucuresti',
-                    "remote": 'on-site'
-                })
+            "job_title": title,
+            "job_link": link,
+            "company": "CNI",
+            "country": "Romania",
+            "county": 'Bucuresti',
+            "city": 'Bucuresti',
+            "remote": 'on-site'
+        })
+
     return list_with_data
-#
-#
+
+
 # update data on peviitor!
 @update_peviitor_api
 def scrape_and_update_peviitor(company_name, data_list):
@@ -45,7 +50,7 @@ def scrape_and_update_peviitor(company_name, data_list):
     return data_list
 
 
-company_name = 'CNI'  # add test comment
+company_name = 'CNI'
 data_list = collect_data_from_API()
 scrape_and_update_peviitor(company_name, data_list)
 

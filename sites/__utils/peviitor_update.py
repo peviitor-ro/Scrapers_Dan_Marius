@@ -34,10 +34,8 @@ class UpdateAPI:
     '''
 
     def __init__(self):
-        self.email = os.environ.get('EMAIL') or 'laurentiumarianbaluta@gmail.com'
+        self.email = os.environ.get('API_KEY')
         self.access_token = None
-        # self.logo_url = 'https://api.peviitor.ro/v1/logo/add/'
-
         self.logo_header = {
             'Content-Type': 'application/json',
             'User-Agent': UA.random,

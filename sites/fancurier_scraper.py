@@ -2,9 +2,12 @@ import html
 import json
 import re
 import unicodedata
+import urllib3
 
 import requests
 from bs4 import BeautifulSoup
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
 from L_00_logo import update_logo
@@ -83,7 +86,7 @@ def get_job_locations(job):
 
 
 def extract_jobs_from_branch(branch_url):
-    response = requests.get(branch_url, headers=DEFAULT_HEADERS, timeout=60)
+    response = requests.get(branch_url, headers=DEFAULT_HEADERS, timeout=60, verify=False)
     soup = BeautifulSoup(response.text, 'lxml')
     data_node = soup.find('div', id='vite-react-division')
     if data_node is None:

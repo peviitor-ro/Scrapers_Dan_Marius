@@ -92,8 +92,14 @@ class UpdateAPI:
         'User-Agent': UA.random,
         }
 
-        self.access_token = requests.request(
-            "POST", "https://api.laurentiumarian.ro/get_token", headers=post_header, data=payload).json()['access']
+        resp = requests.request(
+            "POST", "https://api.laurentiumarian.ro/get_token", headers=post_header, data=payload)
+        try:
+            self.access_token = resp.json()['access']
+        except (requests.exceptions.JSONDecodeError, KeyError) as e:
+            print(f"[WARN] Failed to obtain API token: {e} — status={resp.status_code}")
+            self.access_token = None
+            return self.access_token
         self.write_cached_token(self.access_token)
 
         return self.access_token
@@ -102,6 +108,9 @@ class UpdateAPI:
     def add_jobs(self, data_jobs, retry_on_auth=True):
         if not self.access_token:
             self.get_token()
+        if not self.access_token:
+            print("[WARN] Skipping add_jobs — no API token available.")
+            return None
 
         post_header = {
         'Authorization': f'Bearer {self.access_token}',

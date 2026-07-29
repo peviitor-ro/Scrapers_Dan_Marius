@@ -129,11 +129,14 @@ class UpdateAPI:
         print(f'Added {len(data_jobs)} jobs.')
         return res
 
-    def update_jobs(self, company_name: str, data_jobs: list):
+    def  update_jobs(self, company_name: str, data_jobs: list):
         '''
         ... update and clean data on peviitor
 
         '''
+        if not data_jobs:
+            print(f'[NO JOBS] {company_name}')
+            return
         self.get_token()
         time.sleep(0.2)
         self.add_jobs(data_jobs)

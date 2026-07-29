@@ -41,9 +41,11 @@ def update_peviitor_api(original_function):
         res = requests.post(validator_endpoint,
                             json=data_list, headers=post_header)
 
+        print(f"Status code: {res.status_code}")
         print(json.dumps(data_list, indent=4))
-        print(f'Jobs update ---> succesfuly {res}')
-        print(f'Added {len(data_list)} jobs.')
+
+        if not data_list:
+            print(f'[NO JOBS] {args[0]}')
 
         return original_function(*args, **kwargs)
 

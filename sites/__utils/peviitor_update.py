@@ -18,6 +18,12 @@ from pathlib import Path
 #
 from fake_useragent import UserAgent
 
+from __utils.empty_jobs_repair import (
+    NO_JOBS_MARKER,
+    clear_cooldown_for_calling_scraper,
+    maybe_repair_empty_jobs_output,
+)
+
 UA = UserAgent()
 TOKEN_CACHE_PATH = Path(
     os.environ.get('PEVIITOR_TOKEN_CACHE_PATH')
@@ -129,14 +135,21 @@ class UpdateAPI:
         print(f'Added {len(data_jobs)} jobs.')
         return res
 
-    def  update_jobs(self, company_name: str, data_jobs: list):
+    def update_jobs(self, company_name: str, data_jobs: list):
         '''
         ... update and clean data on peviitor
 
         '''
+        # nu posta o lista goala: ar sterge joburile companiei de pe API
         if not data_jobs:
-            print(f'[NO JOBS] {company_name}')
-            return
+            print(json.dumps(data_jobs, indent=4))
+            # markerul se tipareste inainte de hook: repararea reusita se
+            # incheie cu SystemExit(0) si ar suprima orice print de dupa el
+            print(f'{NO_JOBS_MARKER} {company_name}', flush=True)
+            maybe_repair_empty_jobs_output(company_name)
+            return None
+
+        clear_cooldown_for_calling_scraper()
         self.get_token()
         time.sleep(0.2)
         self.add_jobs(data_jobs)

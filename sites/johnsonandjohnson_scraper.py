@@ -1,14 +1,23 @@
-import requests
-from bs4 import BeautifulSoup
+import re
 import unicodedata
+
+import requests
 
 from A_OO_get_post_soup_update_dec import DEFAULT_HEADERS, update_peviitor_api
 from L_00_logo import update_logo
 from __utils.found_county import get_county
 
 
-JOBS_URL = 'https://www.careers.jnj.com/en/jobs/?search=romania&pagesize=20'
+# careers.jnj.com is protected by a Cloudflare challenge that blocks plain
+# requests. The site is powered by Workday, so we read the same jobs from its
+# public API (the data source behind the careers page).
+JOBS_API_URL = 'https://jj.wd5.myworkdayjobs.com/wday/cxs/jj/JJ/jobs'
+WORKDAY_BASE_URL = 'https://jj.wd5.myworkdayjobs.com/JJ'
 BASE_URL = 'https://www.careers.jnj.com'
+SITEMAP_URL = BASE_URL + '/sitemap.xml'
+JOB_LINK_PATTERN = re.compile(
+    r'<loc>(https://www\.careers\.jnj\.com/en/jobs/([^/<]+)/[^<]*)</loc>'
+)
 CITY_COUNTY_OVERRIDES = {
     'Bucuresti': 'Bucuresti',
 }
@@ -24,23 +33,69 @@ def normalize_city(city):
     return normalized_city
 
 
+def build_job_links():
+    job_links = {}
+    try:
+        response = requests.get(SITEMAP_URL, headers=DEFAULT_HEADERS, timeout=60)
+        response.raise_for_status()
+    except requests.RequestException:
+        return job_links
+
+    for url, job_id in JOB_LINK_PATTERN.findall(response.text):
+        job_links[job_id.lower()] = url
+
+    return job_links
+
+
+def fetch_job_postings():
+    postings = []
+    offset = 0
+    limit = 20
+
+    while True:
+        response = requests.post(
+            JOBS_API_URL,
+            json={
+                'appliedFacets': {},
+                'limit': limit,
+                'offset': offset,
+                'searchText': 'romania',
+            },
+            headers=DEFAULT_HEADERS,
+            timeout=60,
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+        page = payload.get('jobPostings', [])
+        postings.extend(page)
+
+        offset += limit
+        if not page or offset >= payload.get('total', len(postings)):
+            break
+
+    return postings
+
+
 def collect_data_from_API():
-    response = requests.get(JOBS_URL, headers=DEFAULT_HEADERS, timeout=60)
-    soup = BeautifulSoup(response.text, 'lxml')
-    soup_data = soup.select('ul#js-job-search-results > li.card-job')
+    job_links = build_job_links()
     list_with_data = []
 
-    for job in soup_data:
-        title_tag = job.select_one('h3.PagePromo-title a.js-view-job')
-        location_tag = job.select_one('address.PagePromo-location')
-        if title_tag is None or location_tag is None:
+    for job in fetch_job_postings():
+        locations = job.get('locationsText', '')
+        if 'romania' not in locations.lower():
             continue
 
-        city = normalize_city(location_tag.get_text(' ', strip=True))
+        city = normalize_city(locations.split(',')[0])
         county = CITY_COUNTY_OVERRIDES.get(city) or get_county(city)
+
+        bullet_fields = job.get('bulletFields') or []
+        job_id = bullet_fields[0].lower() if bullet_fields else ''
+        job_link = job_links.get(job_id) or WORKDAY_BASE_URL + job.get('externalPath', '')
+
         list_with_data.append({
-            'job_title': title_tag.get_text(' ', strip=True),
-            'job_link': BASE_URL + title_tag.get('href', '').strip(),
+            'job_title': job.get('title', '').strip(),
+            'job_link': job_link,
             'company': 'johnsonandjohnson',
             'country': 'Romania',
             'county': county,

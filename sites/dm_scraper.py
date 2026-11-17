@@ -9,15 +9,13 @@ from L_00_logo import update_logo
 from found_county import get_county
 
 
-SEARCH_URL = 'https://searchui.search.windows.net/indexes/dm-prod/docs/search?api-version=2019-05-06'
+SEARCH_URL = 'https://www.dm-jobs.ro/api/job/search'
 SEARCH_HEADERS = {
-    'Accept': '*/*',
-    'Content-Type': 'application/json;charset=UTF-8',
-    'api-key': '6BBD74F1CBD41E5B0232FB05C5B78ED9',
-    'Origin': 'https://www.dm-jobs.ro',
+    'Accept': 'application/json',
     'Referer': 'https://www.dm-jobs.ro/job-listing/',
     'User-Agent': 'Mozilla/5.0',
 }
+PAGE_SIZE = 20
 CITY_COUNTY_OVERRIDES = {
     'Tunari': 'Ilfov',
     'Floresti': 'Cluj',
@@ -27,17 +25,15 @@ CITY_COUNTY_OVERRIDES = {
 }
 
 
-def fetch_jobs_page(skip=0, top=20):
-    payload = {
-        'count': True,
-        'facets': [],
-        'filter': "brand eq 'Romania'",
-        'search': '*',
-        'skip': skip,
-        'top': top,
-        'orderby': 'datePosted desc'
+def fetch_jobs_page(page=1, per_page=PAGE_SIZE):
+    params = {
+        'q': '*',
+        'country': 'ro',
+        'perPage': per_page,
+        'page': page,
     }
-    response = requests.post(SEARCH_URL, json=payload, headers=SEARCH_HEADERS, timeout=60)
+    response = requests.get(SEARCH_URL, params=params, headers=SEARCH_HEADERS, timeout=60)
+    response.raise_for_status()
     return response.json()
 
 
@@ -68,18 +64,19 @@ def get_remote(job):
 def get_jobs():
     list_jobs = []
     first_page = fetch_jobs_page()
-    total_results = first_page.get('@odata.count', 0)
-    jobs = list(first_page.get('value', []))
+    total_results = first_page.get('count', 0)
+    jobs = list(first_page.get('jobs', []))
+    total_pages = (total_results + PAGE_SIZE - 1) // PAGE_SIZE
 
-    for skip in range(len(jobs), total_results, 20):
-        jobs.extend(fetch_jobs_page(skip=skip).get('value', []))
+    for page in range(2, total_pages + 1):
+        jobs.extend(fetch_jobs_page(page=page).get('jobs', []))
 
     for job in jobs:
         location = extract_city(job)
         county = CITY_COUNTY_OVERRIDES.get(location) or (get_county(location) if location else None)
         list_jobs.append({
             "job_title": job.get('title', '').strip(),
-            "job_link": job.get('link', '').strip(),
+            "job_link": (job.get('jobInviteUrl') or job.get('link') or '').strip(),
             "company": "dm",
             "country": "Romania",
             "county": county,

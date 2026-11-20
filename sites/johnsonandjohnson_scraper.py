@@ -12,6 +12,7 @@ from __utils.found_county import get_county
 # requests. The site is powered by Workday, so we read the same jobs from its
 # public API (the data source behind the careers page).
 JOBS_API_URL = 'https://jj.wd5.myworkdayjobs.com/wday/cxs/jj/JJ/jobs'
+JOB_API_BASE_URL = JOBS_API_URL.rsplit('/', 1)[0]
 WORKDAY_BASE_URL = 'https://jj.wd5.myworkdayjobs.com/JJ'
 BASE_URL = 'https://www.careers.jnj.com'
 SITEMAP_URL = BASE_URL + '/sitemap.xml'
@@ -77,12 +78,32 @@ def fetch_job_postings():
     return postings
 
 
+def get_job_location(job):
+    locations = job.get('locationsText', '')
+    if 'romania' in locations.lower():
+        return locations
+
+    external_path = job.get('externalPath', '')
+    if not external_path:
+        return locations
+
+    try:
+        response = requests.get(JOB_API_BASE_URL + external_path,
+                                headers=DEFAULT_HEADERS, timeout=60)
+        response.raise_for_status()
+        info = response.json().get('jobPostingInfo', {})
+    except (requests.RequestException, ValueError, AttributeError):
+        return locations
+
+    return info.get('location') or locations
+
+
 def collect_data_from_API():
     job_links = build_job_links()
     list_with_data = []
 
     for job in fetch_job_postings():
-        locations = job.get('locationsText', '')
+        locations = get_job_location(job)
         if 'romania' not in locations.lower():
             continue
 

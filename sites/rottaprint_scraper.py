@@ -2,7 +2,7 @@
 # Link ------> https://rottaprint.com/ro/cariere/
 import unicodedata
 
-from __utils.dynamic_requests_html_shorts import GetDynamicSoup
+from __utils.req_bs4_shorts import GetStaticSoup
 from __utils.items_struct import Item
 from __utils.peviitor_update import UpdateAPI
 from __utils.found_county import get_county
@@ -13,7 +13,7 @@ def scraper():
     ... scrape data from imc scraper.
     '''
 
-    soup = GetDynamicSoup("https://rottaprint.com/ro/cariere/")
+    soup = GetStaticSoup("https://www.rottaprint.com/ro/cariere/")
     job_list = []
     for job in soup.find_all('article', class_="job-row post"):
         # get jobs items from response

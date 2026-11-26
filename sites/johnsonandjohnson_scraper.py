@@ -1,5 +1,5 @@
-import re
 import unicodedata
+import xml.etree.ElementTree as ET
 
 import requests
 
@@ -9,16 +9,10 @@ from __utils.found_county import get_county
 
 
 # careers.jnj.com is protected by a Cloudflare challenge that blocks plain
-# requests. The site is powered by Workday, so we read the same jobs from its
-# public API (the data source behind the careers page).
-JOBS_API_URL = 'https://jj.wd5.myworkdayjobs.com/wday/cxs/jj/JJ/jobs'
-JOB_API_BASE_URL = JOBS_API_URL.rsplit('/', 1)[0]
-WORKDAY_BASE_URL = 'https://jj.wd5.myworkdayjobs.com/JJ'
+# requests to its job search pages. The site publishes the same jobs in its
+# XML feed, including the country and city needed by the scraper.
 BASE_URL = 'https://www.careers.jnj.com'
-SITEMAP_URL = BASE_URL + '/sitemap.xml'
-JOB_LINK_PATTERN = re.compile(
-    r'<loc>(https://www\.careers\.jnj\.com/en/jobs/([^/<]+)/[^<]*)</loc>'
-)
+JOBS_URL = BASE_URL + '/en/jobs/xml/?rss=true'
 CITY_COUNTY_OVERRIDES = {
     'Bucuresti': 'Bucuresti',
 }
@@ -34,89 +28,39 @@ def normalize_city(city):
     return normalized_city
 
 
-def build_job_links():
-    job_links = {}
-    try:
-        response = requests.get(SITEMAP_URL, headers=DEFAULT_HEADERS, timeout=60)
-        response.raise_for_status()
-    except requests.RequestException:
-        return job_links
-
-    for url, job_id in JOB_LINK_PATTERN.findall(response.text):
-        job_links[job_id.lower()] = url
-
-    return job_links
-
-
 def fetch_job_postings():
-    postings = []
-    offset = 0
-    limit = 20
-
-    while True:
-        response = requests.post(
-            JOBS_API_URL,
-            json={
-                'appliedFacets': {},
-                'limit': limit,
-                'offset': offset,
-                'searchText': 'romania',
-            },
-            headers=DEFAULT_HEADERS,
-            timeout=60,
-        )
+    try:
+        response = requests.get(JOBS_URL, headers=DEFAULT_HEADERS, timeout=60)
         response.raise_for_status()
-        payload = response.json()
+        root = ET.fromstring(response.content)
+    except (requests.RequestException, ET.ParseError):
+        return []
 
-        page = payload.get('jobPostings', [])
-        postings.extend(page)
-
-        offset += limit
-        if not page or offset >= payload.get('total', len(postings)):
-            break
+    postings = []
+    for job in root.findall('job'):
+        postings.append({
+            'title': (job.findtext('title') or '').strip(),
+            'url': (job.findtext('url') or '').strip(),
+            'city': (job.findtext('city') or '').strip(),
+            'country': (job.findtext('country') or '').strip(),
+        })
 
     return postings
 
 
-def get_job_location(job):
-    locations = job.get('locationsText', '')
-    if 'romania' in locations.lower():
-        return locations
-
-    external_path = job.get('externalPath', '')
-    if not external_path:
-        return locations
-
-    try:
-        response = requests.get(JOB_API_BASE_URL + external_path,
-                                headers=DEFAULT_HEADERS, timeout=60)
-        response.raise_for_status()
-        info = response.json().get('jobPostingInfo', {})
-    except (requests.RequestException, ValueError, AttributeError):
-        return locations
-
-    return info.get('location') or locations
-
-
 def collect_data_from_API():
-    job_links = build_job_links()
     list_with_data = []
 
     for job in fetch_job_postings():
-        locations = get_job_location(job)
-        if 'romania' not in locations.lower():
+        if 'romania' not in job['country'].lower():
             continue
 
-        city = normalize_city(locations.split(',')[0])
+        city = normalize_city(job['city'])
         county = CITY_COUNTY_OVERRIDES.get(city) or get_county(city)
 
-        bullet_fields = job.get('bulletFields') or []
-        job_id = bullet_fields[0].lower() if bullet_fields else ''
-        job_link = job_links.get(job_id) or WORKDAY_BASE_URL + job.get('externalPath', '')
-
         list_with_data.append({
-            'job_title': job.get('title', '').strip(),
-            'job_link': job_link,
+            'job_title': job['title'],
+            'job_link': job['url'],
             'company': 'johnsonandjohnson',
             'country': 'Romania',
             'county': county,
